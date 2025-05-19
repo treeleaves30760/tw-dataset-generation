@@ -35,6 +35,16 @@ def ensure_directory_exists(directory):
     """確保目錄存在，不存在則創建"""
     Path(directory).mkdir(parents=True, exist_ok=True)
 
+def count_images_in_directory(directory):
+    """計算目錄中的圖片檔案數量"""
+    image_extensions = ['.jpg', '.jpeg', '.png', '.gif']
+    image_files = []
+    
+    for ext in image_extensions:
+        image_files.extend(glob.glob(os.path.join(directory, f'*{ext}')))
+    
+    return len(image_files)
+
 def download_image(image_url, save_path):
     """從URL下載圖片並儲存"""
     try:
@@ -126,6 +136,12 @@ def process_attractions():
             attraction_dir = os.path.join(base_dir, folder_name)
             ensure_directory_exists(attraction_dir)
             
+            # 檢查目錄中是否已有足夠的圖片
+            existing_images = count_images_in_directory(attraction_dir)
+            if existing_images >= 10:
+                logger.info(f"{attraction_name}已有{existing_images}張圖片，跳過")
+                continue
+            
             # 使用Google Maps API獲取圖片
             image_urls = get_place_photos(gmaps, attraction_name)
             
@@ -133,23 +149,27 @@ def process_attractions():
                 logger.warning(f"無法為{attraction_name}找到任何照片，跳過")
                 continue
                 
+            # 計算還需要下載的圖片數量
+            images_to_download = min(10 - existing_images, len(image_urls))
+            logger.info(f"{attraction_name}已有{existing_images}張圖片，將下載額外{images_to_download}張")
+            
             # 下載圖片
-            for i, image_url in enumerate(image_urls, 1):
-                # 定義檔案路徑
-                image_filename = f"{folder_name}_{i}.jpg"
+            for i, image_url in enumerate(image_urls[:images_to_download], 1):
+                # 定義檔案路徑，新圖片編號從existing_images+1開始
+                image_filename = f"{folder_name}_{existing_images + i}.jpg"
                 image_path = os.path.join(attraction_dir, image_filename)
                 
                 # 跳過已存在的圖片
                 if os.path.exists(image_path):
-                    logger.info(f"{attraction_name}的圖片{i}已存在，跳過")
+                    logger.info(f"{attraction_name}的圖片{existing_images + i}已存在，跳過")
                     continue
                 
                 # 下載並儲存圖片
                 success = download_image(image_url, image_path)
                 if success:
-                    logger.info(f"已儲存{attraction_name}的圖片 {i}/{len(image_urls)}")
+                    logger.info(f"已儲存{attraction_name}的圖片 {i}/{images_to_download}")
                 else:
-                    logger.warning(f"無法儲存{attraction_name}的圖片 {i}/{len(image_urls)}")
+                    logger.warning(f"無法儲存{attraction_name}的圖片 {i}/{images_to_download}")
                 
                 # 短暫延遲避免過快請求
                 time.sleep(0.5)

@@ -5,3 +5,5 @@ attractions/
 image_data/
 
 景點.csv
+
+*.log

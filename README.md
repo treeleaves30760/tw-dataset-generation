@@ -9,6 +9,7 @@ TW-Dataset Generator 是一個自動化工具，用於生成台灣旅遊景點�
 - 下載並整理景點JSON數據
 - 使用Google Maps API獲取每個景點的照片
 - 將照片以結構化的方式儲存
+- 根據Google搜尋結果數量過濾出前1000名熱門景點（`google_search_count.py`）
 
 ## 安裝方法
 
@@ -54,6 +55,26 @@ python json_downloader.py
 3. 程式會處理`attractions`資料夾中的所有JSON檔案，從中提取景點名稱
 4. 使用Google Maps Places API搜尋每個景點並下載最多10張照片
 5. 照片會儲存在`./image_data/<景點名稱>/<景點名稱_編號>.jpg`格式的路徑中
+
+### 4. 過濾景點（依Google搜尋結果數量前1000名）
+
+本專案提供腳本可根據Google搜尋結果數量，過濾出前1000名熱門景點：
+
+1. 先確保您已經設定Google Maps API金鑰與Google Custom Search Engine（CSE）ID：
+   - 在專案根目錄建立`.env`檔案，內容如下：
+     ```
+     GOOGLE_API_KEY=您的Google_API金鑰
+     GOOGLE_CSE_CX=您的Google_CSE_ID
+     ```
+2. 執行以下指令：
+   ```bash
+   python google_search_count.py
+   ```
+3. 程式會直接讀取`景點.csv`，查詢每個景點的Google搜尋結果數量，並將搜尋結果數量最多的前1000個景點寫入`景點_F1000.csv`。
+4. 輸出檔案格式：
+   - `景點_F1000.csv`，欄位為「景點名稱,搜尋結果數量」
+
+> 注意：Google Custom Search API有每日配額限制，請留意API使用量。
 
 ## 系統需求
 

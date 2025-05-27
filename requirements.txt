@@ -3,3 +3,5 @@ requests
 tqdm
 python-dotenv
 googlemaps
+selenium
+beautifulsoup4

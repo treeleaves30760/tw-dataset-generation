@@ -60,33 +60,33 @@ python json_downloader.py
 
 本專案提供腳本可根據Google搜尋結果數量，過濾出前1000名熱門景點：
 
-1. 先確保您已經設定Google Maps API金鑰與Google Custom Search Engine（CSE）ID：
-   - 在專案根目錄建立`.env`檔案，內容如下：
-     ```
-     GOOGLE_API_KEY=您的Google_API金鑰
-     GOOGLE_CSE_CX=您的Google_CSE_ID
-     ```
+1. 準備好「景點.csv」檔案，放在專案根目錄。
 2. 執行以下指令：
    ```bash
    python google_search_count.py
    ```
-3. 程式會直接讀取`景點.csv`，查詢每個景點的Google搜尋結果數量，並將搜尋結果數量最多的前1000個景點寫入`景點_F1000.csv`。
+3. 程式會直接讀取 `景點.csv`，查詢每個景點的 Google 搜尋結果數量，並將搜尋結果數量最多的前1000個景點寫入 `景點_F1000.csv`。
 4. 輸出檔案格式：
    - `景點_F1000.csv`，欄位為「景點名稱,搜尋結果數量」
 
-> 注意：Google Custom Search API有每日配額限制，請留意API使用量。
+> 程式會自動以多組 User-Agent 進行爬蟲，降低被 Google 反爬蟲偵測的機率。
+
+### 依賴與驅動
+
+- 若要使用 Selenium，請安裝 [ChromeDriver](https://sites.google.com/chromium.org/driver/) 並確保其與本機 Chrome 瀏覽器版本相符，且已加入 PATH。
+- requirements.txt 已新增 selenium 套件。
 
 ## 系統需求
 
 - Python 3.6+
-- Google Maps API金鑰
+- Google Maps API金鑰（僅下載圖片功能需要）
 
 ## 安裝套件
 
 本專案需要安裝以下Python套件：
 
 ```bash
-pip install requests python-dotenv googlemaps pandas tqdm
+pip install requests python-dotenv googlemaps pandas tqdm selenium beautifulsoup4
 ```
 
 ## 獲取Google Maps API金鑰
@@ -127,3 +127,50 @@ pip install requests python-dotenv googlemaps pandas tqdm
 ```
 
 其中`AttractionName`欄位是必需的。
+
+# Taiwan Tourist Attractions Google Search Count
+
+本工具會讀取台灣景點的 CSV 檔案，對每個景點進行 Google 搜尋，取得搜尋結果數量，並篩選出搜尋數量最多的前 1000 筆。
+
+## 主要功能
+- 讀取景點資料（CSV）
+- 以爬蟲方式查詢 Google 搜尋結果數量（不再使用 Google API，並加強反爬蟲機制：隨機延遲、多 User-Agent、偵測驗證碼自動重試等）
+- 支援自動儲存進度
+- 篩選搜尋數量最多的前 1000 筆
+
+## 安裝需求
+- Python 3.7+
+- pandas
+- requests
+- beautifulsoup4
+- tqdm
+- python-dotenv
+
+安裝套件：
+
+```bash
+pip install -r requirements.txt
+```
+
+## 使用說明
+1. 準備好景點資料檔案 `景點.csv`，放在專案目錄下。
+2. 執行主程式：
+
+```bash
+python google_search_count.py
+```
+
+3. 結果會輸出到 `景點_F1000.csv`。
+
+## 注意事項
+- 本程式改為直接爬取 Google 搜尋頁面，**不再需要 Google API Key**。
+- 每次請求會自動隨機切換多個 User-Agent，並隨機延遲，遇到 Google 驗證碼或 429/503 等錯誤會自動重試，以降低被 Google 反爬蟲偵測的機率。
+- Google 可能會因為頻繁請求而出現驗證碼或封鎖，請斟酌使用。
+- 若遇到搜尋失敗，會自動重試，並將失敗的搜尋數量設為 0。
+
+## 參數設定
+可在 `google_search_count.py` 內調整：
+- `INPUT_FILE`：輸入檔名
+- `OUTPUT_FILE`：輸出檔名
+- `REQUEST_DELAY`：每次請求間隔秒數
+- `BATCH_SIZE`：每 N 筆自動儲存進度

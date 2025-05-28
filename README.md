@@ -2,12 +2,13 @@
 
 ## 簡介
 
-TW-Dataset Generator 是一個自動化工具，用於生成台灣旅遊景點的數據集。該工具可以自動下載景點資訊的JSON檔案，並從Google Maps收集每個景點的圖片，建立完整的台灣旅遊景點圖像資料集。
+TW-Dataset Generator 是一個自動化工具，用於生成台灣旅遊景點的數據集。該工具可以自動下載景點資訊的JSON檔案，並從Google Maps和Flickr收集每個景點的圖片，建立完整的台灣旅遊景點圖像資料集。
 
 這個專案的主要功能包括：
 - 從台灣觀光多媒體開放資料平台獲取景點資訊
 - 下載並整理景點JSON數據
 - 使用Google Maps API獲取每個景點的照片
+- 使用Flickr API獲取高品質景點圖片
 - 將照片以結構化的方式儲存
 - 根據Google搜尋結果數量過濾出前1000名熱門景點（`google_search_count.py`）
 
@@ -41,6 +42,8 @@ python json_downloader.py
 
 ### 3. 下載景點圖片
 
+#### 3.1 使用Google Maps下載圖片
+
 使用`image_scraper.py`工具為每個景點下載Google Maps圖片：
 
 1. 首先，確保您已經設定Google Maps API金鑰：
@@ -55,6 +58,26 @@ python json_downloader.py
 3. 程式會處理`attractions`資料夾中的所有JSON檔案，從中提取景點名稱
 4. 使用Google Maps Places API搜尋每個景點並下載最多10張照片
 5. 照片會儲存在`./image_data/<景點名稱>/<景點名稱_編號>.jpg`格式的路徑中
+
+#### 3.2 使用Flickr下載圖片（新功能）
+
+針對前1000名熱門景點，使用Flickr API獲取高品質圖片：
+
+1. 首先，申請Flickr API憑證：
+   - 前往[Flickr API申請頁面](https://www.flickr.com/services/apps/create/apply)
+   - 選擇 "Apply for a non-commercial key"
+   - 獲取API Key和API Secret
+
+2. 執行Flickr圖片下載：
+   ```bash
+   cd Data_F1000
+   python flickr_image_scraper.py
+   ```
+
+3. 程式會：
+   - 讀取`景點_F1000.csv`中的景點資料
+   - 使用Flickr API搜尋相關圖片
+   - 將圖片儲存到`Data_F1000/Flickr_image_data/`資料夾
 
 ### 4. 過濾景點（依Google搜尋結果數量前1000名）
 
@@ -79,19 +102,22 @@ python json_downloader.py
 ## 系統需求
 
 - Python 3.6+
-- Google Maps API金鑰（僅下載圖片功能需要）
+- Google Maps API金鑰（僅Google Maps圖片下載功能需要）
+- Flickr API憑證（僅Flickr圖片下載功能需要）
 
 ## 安裝套件
 
 本專案需要安裝以下Python套件：
 
 ```bash
-pip install requests python-dotenv googlemaps pandas tqdm selenium beautifulsoup4
+pip install -r requirements.txt
 ```
 
-## 獲取Google Maps API金鑰
+## API金鑰設定
 
-若要使用景點圖片下載功能，您需要先獲取Google Maps API金鑰：
+### Google Maps API金鑰
+
+若要使用Google Maps圖片下載功能，您需要先獲取Google Maps API金鑰：
 
 1. 前往[Google Cloud Console](https://console.cloud.google.com/)
 2. 登入您的Google帳戶並創建一個新專案
@@ -101,6 +127,16 @@ pip install requests python-dotenv googlemaps pandas tqdm selenium beautifulsoup
    - Maps JavaScript API
 5. 在「API和服務」>「憑證」頁面中創建API金鑰
 6. 將API金鑰複製到專案的`.env`檔案中
+
+### Flickr API憑證
+
+若要使用Flickr圖片下載功能：
+
+1. 前往[Flickr API申請頁面](https://www.flickr.com/services/apps/create/apply)
+2. 選擇 "Apply for a non-commercial key"
+3. 填寫應用程式資訊
+4. 獲取API Key和API Secret
+5. 在`.env`檔案中設定憑證
 
 ## 注意事項
 

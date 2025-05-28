@@ -1,9 +1,15 @@
 .env
 
+.vscode/
+
 attractions/
 
 image_data/
+google_image_data/
+Flickr_image_data/
 
 景點.csv
 
 *.log
+
+__pycache__/

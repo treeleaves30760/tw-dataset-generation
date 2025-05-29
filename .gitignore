@@ -15,3 +15,7 @@ Data_F1000/*
 *.log
 
 __pycache__/
+
+old/
+
+TODO.md

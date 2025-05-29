@@ -6,3 +6,4 @@ alwaysApply: true
 - Update the README.md after each change
 - Ensure the codebase is sync with the README.md
 - Ensure the command show in the README.md is vaild and not out-dated
+- Do not modified the function name or variable name without user asking

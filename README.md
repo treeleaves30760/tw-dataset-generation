@@ -186,6 +186,45 @@ pip install -r requirements.txt
 
 使用Google Maps API時，請遵守[Google Maps Platform條款](https://cloud.google.com/maps-platform/terms/)。
 
+### 5. 生成景點圖片推理描述（新功能）
+
+針對已下載的景點圖片，使用Google Gemini AI生成詳細的推理描述：
+
+1. **設定Gemini API**：
+   - 在專案根目錄的`.env`檔案中添加：
+     ```
+     GEMINI_API_KEY=您的Gemini_API金鑰
+     ```
+
+2. **準備推理模板**：
+   - 確保`reasoning/Generate_Description.md`檔案存在且包含適當的prompt模板
+
+3. **執行推理生成**：
+   ```bash
+   cd reasoning
+   python attraction_generation.py
+   ```
+
+4. **程式功能**：
+   - 讀取`景點_F1000.csv`中的景點資料（名稱和描述）
+   - 處理`Data_F1000/google_search_image_data/`目錄中的圖片
+   - 為每張圖片生成包含以下內容的JSON格式推理：
+     - 詳細的圖片描述分析
+     - 多個關於圖片內容的問答
+     - 圖片與景點資訊的符合度評估
+   - 實作重複檢測，自動跳過已處理的圖片
+   - 將結果以JSONL格式儲存到`Data_F1000/result.jsonl`
+
+5. **輸出格式**：
+   每行包含一個JSON物件，包含以下欄位：
+   - `attraction_name`: 景點名稱
+   - `attraction_description`: 景點描述
+   - `image_path`: 圖片路徑
+   - `image_filename`: 圖片檔名
+   - `reasoning`: Gemini AI生成的詳細推理內容
+
+> **注意**：Gemini API有使用限制和計費標準，建議先小批量測試。目前程式設定為測試模式，僅處理前3個景點，每個景點最多2張圖片。
+
 ## JSON格式
 
 程式預期的JSON檔案結構如下：

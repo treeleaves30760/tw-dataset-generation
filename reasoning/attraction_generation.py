@@ -7,7 +7,9 @@ from pathlib import Path
 import glob
 
 load_dotenv()
-genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+
+# 使用新版 google-genai 創建客戶端
+client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
 # 讀取CSV檔案
 csv_path = "../景點_F1000.csv"
@@ -60,20 +62,22 @@ def process_attraction_images(attraction_name, attraction_description):
             prompt = prompt.replace(
                 "<|attraction_description|>", attraction_description)
 
-            # 呼叫Gemini API
+            # 呼叫新版 Gemini API
             print(f"處理圖片：{os.path.basename(image_path)}")
 
-            # 上傳圖片
-            image_file = genai.upload_file(image_path, mime_type='image/jpeg')
+            # 上傳圖片並生成內容
+            uploaded_file = client.files.upload(file=image_path)
 
-            model = genai.GenerativeModel('gemini-2.5-flash-preview-05-20')
-            response = model.generate_content([image_file, prompt])
+            response = client.models.generate_content(
+                model='gemini-2.5-flash-preview-05-20',
+                contents=[uploaded_file, prompt]
+            )
 
             # 準備結果記錄
             result_record = {
                 "attraction_name": attraction_name,
                 "attraction_description": attraction_description,
-                "image_path": image_path,
+                "image_path": image_path.replace('..', '.'),
                 "image_filename": os.path.basename(image_path),
                 "reasoning": str(response.text)
             }

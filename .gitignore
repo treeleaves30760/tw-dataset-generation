@@ -1,4 +1,4 @@
-.env
+*.env
 
 .vscode/
 
@@ -7,6 +7,8 @@ attractions/
 image_data/
 google_image_data/
 Flickr_image_data/
+
+Data_F1000/*
 
 景點.csv
 

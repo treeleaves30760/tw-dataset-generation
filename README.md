@@ -2,13 +2,13 @@
 
 ## 簡介
 
-TW-Dataset Generator 是一個自動化工具，用於生成台灣旅遊景點的數據集。該工具可以自動下載景點資訊的JSON檔案，並從Google Maps和Flickr收集每個景點的圖片，建立完整的台灣旅遊景點圖像資料集。
+TW-Dataset Generator 是一個自動化工具，用於生成台灣旅遊景點的數據集。該工具可以自動下載景點資訊的JSON檔案，並從Google Maps和Google Search收集每個景點的圖片，建立完整的台灣旅遊景點圖像資料集。
 
 這個專案的主要功能包括：
 - 從台灣觀光多媒體開放資料平台獲取景點資訊
 - 下載並整理景點JSON數據
 - 使用Google Maps API獲取每個景點的照片
-- 使用Flickr API獲取高品質景點圖片
+- 使用Google Custom Search API從Google搜尋獲取大量景點圖片
 - 將照片以結構化的方式儲存
 - 根據Google搜尋結果數量過濾出前1000名熱門景點（`google_search_count.py`）
 
@@ -59,25 +59,45 @@ python json_downloader.py
 4. 使用Google Maps Places API搜尋每個景點並下載最多10張照片
 5. 照片會儲存在`./image_data/<景點名稱>/<景點名稱_編號>.jpg`格式的路徑中
 
-#### 3.2 使用Flickr下載圖片（新功能）
+#### 3.2 使用Google Search下載圖片（新功能）
 
-針對前1000名熱門景點，使用Flickr API獲取高品質圖片：
+針對前1000名熱門景點，使用Google Custom Search API獲取大量景點圖片：
 
-1. 首先，申請Flickr API憑證：
-   - 前往[Flickr API申請頁面](https://www.flickr.com/services/apps/create/apply)
-   - 選擇 "Apply for a non-commercial key"
-   - 獲取API Key和API Secret
+1. 首先，設定Google Custom Search API：
+   - 在專案根目錄的`.env`檔案中添加：
+     ```
+     GOOGLE_API_KEY=您的Google_API金鑰
+     GOOGLE_SEARCH_ENGINE_ID=您的自訂搜尋引擎ID
+     ```
+   - 關於如何設定Google Custom Search Engine，請參考下方的「API金鑰設定」部分
 
-2. 執行Flickr圖片下載：
+2. 執行Google Search圖片下載：
    ```bash
-   cd Data_F1000
-   python flickr_image_scraper.py
+   python google_search_image_scraper.py
    ```
 
 3. 程式會：
    - 讀取`景點_F1000.csv`中的景點資料
-   - 使用Flickr API搜尋相關圖片
-   - 將圖片儲存到`Data_F1000/Flickr_image_data/`資料夾
+   - 使用Google Custom Search API搜尋每個景點的圖片
+   - 下載每個景點最多100張高品質圖片，自動轉換為JPG格式
+   - 將圖片儲存到`Data_F1000/google_search_image_data/<景點名稱>/`資料夾
+   - 搜尋限制：僅搜尋照片類型圖片且限制在台灣地區
+   - 自動跳過已有足夠圖片的景點，避免重複下載
+
+#### 3.3 圖片格式統一轉換
+
+將所有下載的圖片統一轉換為JPG格式：
+
+```bash
+python convert_images_to_jpg.py
+```
+
+此工具會：
+- 自動掃描`Data_F1000/google_search_image_data/`目錄中的所有圖片
+- 將PNG、WEBP、JPEG等格式轉換為高品質JPG格式
+- 保持原有的檔名結構和編號
+- 自動處理透明背景圖片（轉換為白色背景）
+- 轉換完成後刪除原始檔案，節省儲存空間
 
 ### 4. 過濾景點（依Google搜尋結果數量前1000名）
 
@@ -104,6 +124,7 @@ python json_downloader.py
 - Python 3.6+
 - Google Maps API金鑰（僅Google Maps圖片下載功能需要）
 - Flickr API憑證（僅Flickr圖片下載功能需要）
+- Google Custom Search API憑證（僅Google Search圖片下載功能需要）
 
 ## 安裝套件
 
@@ -128,21 +149,36 @@ pip install -r requirements.txt
 5. 在「API和服務」>「憑證」頁面中創建API金鑰
 6. 將API金鑰複製到專案的`.env`檔案中
 
-### Flickr API憑證
+### Google Custom Search API設定
 
-若要使用Flickr圖片下載功能：
+若要使用Google Search圖片下載功能：
 
-1. 前往[Flickr API申請頁面](https://www.flickr.com/services/apps/create/apply)
-2. 選擇 "Apply for a non-commercial key"
-3. 填寫應用程式資訊
-4. 獲取API Key和API Secret
-5. 在`.env`檔案中設定憑證
+1. **啟用API**：
+   - 前往[Google Cloud Console](https://console.cloud.google.com/)
+   - 在「API和服務」>「程式庫」中搜尋並啟用「Custom Search API」
+
+2. **創建自訂搜尋引擎**：
+   - 前往[Google Custom Search Engine](https://cse.google.com/cse/)
+   - 點選「新增」創建新的搜尋引擎
+   - 在「要搜尋的網站」中輸入 `*`（搜尋整個網路）
+   - 建立後，在控制台中點選您的搜尋引擎
+   - 在「設定」>「基本」中，啟用「圖片搜尋」
+   - 記下「搜尋引擎ID」
+
+3. **設定環境變數**：
+   ```
+   GOOGLE_API_KEY=您的Google_API金鑰
+   GOOGLE_SEARCH_ENGINE_ID=您的自訂搜尋引擎ID
+   ```
+
 
 ## 注意事項
 
-- 程式會將所有活動記錄到命令行和名為`image_scraper.log`的檔案中
+- 程式會將所有活動記錄到命令行和相應的日誌檔案中
 - 如果程式遇到錯誤，請查看日誌檔案了解詳情
-- Google Maps API有使用限制和計費標準，請確保您了解這些限制以避免產生意外費用
+- Google APIs有使用限制和計費標準，請確保您了解這些限制以避免產生意外費用
+- Google Custom Search API每日有免費額度限制，超過後會產生費用
+- 請遵守各API服務的使用條款和速率限制
 
 ## 授權條款
 

@@ -1,1 +1,2 @@
 *.jsonl filter=lfs diff=lfs merge=lfs -text
+*.{jpg,jpeg,png,gif,bmp,tiff,webp} filter=lfs diff=lfs merge=lfs -text

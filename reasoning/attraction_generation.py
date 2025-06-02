@@ -5,6 +5,7 @@ import pandas as pd
 import json
 from pathlib import Path
 import glob
+from tqdm import tqdm
 
 load_dotenv()
 
@@ -16,7 +17,7 @@ csv_path = "../景點_F1000.csv"
 attractions_df = pd.read_csv(csv_path)
 
 # 設定路徑
-google_search_base_path = "../Data_F1000/google_search_image_data"
+google_search_base_path = "../Data_F1000/google_search_image_data_train"
 output_path = "../Data_F1000/result.jsonl"
 
 # 讀取已處理的記錄，避免重複處理
@@ -44,12 +45,9 @@ def process_attraction_images(attraction_name, attraction_description):
     # 獲取所有jpg圖片
     image_files = glob.glob(os.path.join(attraction_folder, "*.jpg"))
 
-    # 為了測試，每個景點最多只處理前2張圖片
-    image_files = image_files[:2]
-
     print(f"處理景點：{attraction_name}，共 {len(image_files)} 張圖片")
 
-    for image_path in image_files:
+    for image_path in tqdm(image_files, desc=f"處理 {attraction_name}"):
         # 檢查是否已經處理過
         if image_path in processed_images:
             print(f"跳過已處理的圖片：{os.path.basename(image_path)}")
@@ -100,11 +98,10 @@ def process_attraction_images(attraction_name, attraction_description):
 print("開始批量處理景點圖片...")
 print(f"共有 {len(attractions_df)} 個景點需要處理")
 
-# 為了測試，只處理前3個景點
-test_df = attractions_df.head(3)
+test_df = attractions_df.head(200)
 print(f"測試模式：只處理前 {len(test_df)} 個景點")
 
-for index, row in enumerate(test_df.itertuples(), 1):
+for index, row in enumerate(tqdm(test_df.itertuples(), total=len(test_df), desc="處理景點"), 1):
     attraction_name = row.資料名稱
     attraction_description = row.文字描述
 

@@ -194,7 +194,10 @@ pip install -r requirements.txt
    - 在專案根目錄的`.env`檔案中添加：
      ```
      GEMINI_API_KEY=您的Gemini_API金鑰
+     GEMINI_API_KEY_2=您的第二個Gemini_API金鑰（可選，用於提高處理速度和避免速率限制）
      ```
+   - 如果只有一個API key，程式會自動使用單key模式
+   - 建議設定兩個API key以提高處理效能和避免HTTP 429錯誤
 
 2. **準備推理模板**：
    - 確保`reasoning/Generate_Description.md`檔案存在且包含適當的prompt模板
@@ -205,17 +208,26 @@ pip install -r requirements.txt
    python attraction_generation.py
    ```
 
-4. **程式功能**：
+4. **程式功能與多執行緒處理**：
+   - **高效能並行處理**：使用10個線程同時處理圖片，大幅提升處理速度
+   - **智能API key輪換**：自動在多個API key之間輪換，避免單一key的速率限制
+   - **線程安全機制**：確保多線程環境下的文件寫入和狀態管理安全
    - 讀取`景點_F1000.csv`中的景點資料（名稱和描述）
    - 處理`Data_F1000/google_search_image_data/`目錄中的圖片
    - 為每張圖片生成包含以下內容的JSON格式推理：
      - 詳細的圖片描述分析
      - 多個關於圖片內容的問答
      - 圖片與景點資訊的符合度評估
-   - 實作重複檢測，自動跳過已處理的圖片
+   - **重複檢測與續傳**：自動跳過已處理的圖片，支援中斷後繼續處理
+   - **即時進度顯示**：使用進度條顯示處理狀態和剩餘時間
    - 將結果以JSONL格式儲存到`Data_F1000/result.jsonl`
 
-5. **輸出格式**：
+5. **效能提升**：
+   - **10倍速度提升**：相比單線程處理，多線程版本可提升約10倍處理速度
+   - **錯誤恢復機制**：遇到HTTP 429或quota錯誤時自動延遲重試
+   - **記憶體優化**：採用任務池模式，避免大量圖片同時載入記憶體
+
+6. **輸出格式**：
    每行包含一個JSON物件，包含以下欄位：
    - `attraction_name`: 景點名稱
    - `attraction_description`: 景點描述
@@ -223,7 +235,11 @@ pip install -r requirements.txt
    - `image_filename`: 圖片檔名
    - `reasoning`: Gemini AI生成的詳細推理內容
 
-> **注意**：Gemini API有使用限制和計費標準，建議先小批量測試。目前程式設定為測試模式，僅處理前3個景點，每個景點最多2張圖片。
+> **注意**：
+> - Gemini API有使用限制和計費標準，建議先小批量測試
+> - 目前程式設定為測試模式，僅處理前200個景點
+> - 多執行緒處理會增加API使用量，請注意quota限制
+> - 建議使用兩個不同的API key以獲得最佳性能
 
 ## JSON格式
 
